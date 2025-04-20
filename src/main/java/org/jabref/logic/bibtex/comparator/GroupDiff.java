@@ -96,4 +96,13 @@ public class GroupDiff {
     public GroupTreeNode getNewGroupRoot() {
         return newGroupRoot;
     }
+
+    /**
+     * Method to access detailed changes
+     */
+        public List<String> getChanges() {
+        return changes;
+    }
 }
+
+
