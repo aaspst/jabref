@@ -53,7 +53,7 @@ public class GroupDiff {
     }
 
     /**
-     * Simple line-based diff 
+     * Simple line-based diff
      */
     private List<String> generateUnifiedDiff(String original, String modified) {
         List<String> diffLines = new ArrayList<>();
@@ -77,14 +77,16 @@ public class GroupDiff {
      * be possible, but difficult to do properly, so we rather only report the change.
      */
     public static Optional<GroupDiff> compare(MetaData originalMetaData, MetaData newMetaData) {
-        final Optional<GroupTreeNode> originalGroups = originalMetaData.getGroups();
-        final Optional<GroupTreeNode> newGroups = newMetaData.getGroups();
+        Optional<GroupTreeNode> originalGroups = originalMetaData.getGroups();
+        Optional<GroupTreeNode> newGroups = newMetaData.getGroups();
 
-        if (!originalGroups.equals(newGroups)) {
-            return Optional.of(new GroupDiff(originalGroups.orElse(null), newGroups.orElse(null)));
-        } else {
-            return Optional.empty();
+        if (!Objects.equals(originalGroups, newGroups)) {
+            return Optional.of(new GroupDiff(
+                    originalGroups.orElse(null),
+                    newGroups.orElse(null)
+            ));
         }
+        return Optional.empty();
     }
 
     public GroupTreeNode getOriginalGroupRoot() {
