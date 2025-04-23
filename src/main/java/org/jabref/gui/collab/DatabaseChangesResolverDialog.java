@@ -13,8 +13,12 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 import org.jabref.gui.DialogService;
+import org.jabref.gui.collab.groupchange.GroupChange;
 import org.jabref.gui.preferences.GuiPreferences;
 import org.jabref.gui.preview.PreviewViewer;
 import org.jabref.gui.theme.ThemeManager;
@@ -121,11 +125,37 @@ public class DatabaseChangesResolverDialog extends BaseDialog<Boolean> {
             }
         });
 
-        EasyBind.subscribe(viewModel.areAllChangesResolvedProperty(), isResolved -> {
-            if (isResolved) {
-                areAllChangesAccepted = viewModel.areAllChangesAccepted();
-                areAllChangesDenied = viewModel.areAllChangesDenied();
-                close();
+        EasyBind.subscribe(viewModel.selectedChangeProperty(), selectedChange -> {
+            if (selectedChange != null) {
+                if (selectedChange instanceof GroupChange) {
+                    // Handle GroupChange display
+                    GroupChange groupChange = (GroupChange) selectedChange;
+                    TextFlow diffDisplay = new TextFlow();
+                    diffDisplay.setStyle("-fx-font-family: monospace; -fx-padding: 10;");
+
+                    List<String> changes = groupChange.getGroupDiff().getChanges();
+                    if (changes.isEmpty()) {
+                        diffDisplay.getChildren().add(new Text("(No visible group changes)"));
+                    } else {
+                        for (String line : changes) {
+                            Text lineText = new Text(line + "\n");
+                            if (line.startsWith("-")) {
+                                lineText.setFill(Color.RED);
+                            } else if (line.startsWith("+")) {
+                                lineText.setFill(Color.GREEN);
+                            }
+                            diffDisplay.getChildren().add(lineText);
+                        }
+                    }
+                    changeInfoPane.setCenter(diffDisplay);
+                } else {
+                    // Original behavior for non-group changes
+                    DatabaseChangeDetailsView detailsView = DETAILS_VIEW_CACHE.computeIfAbsent(
+                            selectedChange,
+                            databaseChangeDetailsViewFactory::create
+                    );
+                    changeInfoPane.setCenter(detailsView);
+                }
             }
         });
     }

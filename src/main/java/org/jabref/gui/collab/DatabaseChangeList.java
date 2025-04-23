@@ -36,10 +36,15 @@ public class DatabaseChangeList {
         BibDatabaseDiff differences = BibDatabaseDiff.compare(originalDatabase, otherDatabase);
 
         differences.getMetaDataDifferences().ifPresent(diff -> {
+            // 1. Always add MetadataChange 
             changes.add(new MetadataChange(diff, originalDatabase, databaseChangeResolverFactory));
-            diff.getGroupDifferences().ifPresent(groupDiff -> changes.add(new GroupChange(
-                    groupDiff, originalDatabase, databaseChangeResolverFactory
-            )));
+
+            // 2. Add GroupChange only if detailed diff exists
+            diff.getGroupDifferences()
+                .filter(groupDiff -> !groupDiff.getChanges().isEmpty())
+                .ifPresent(groupDiff ->
+                        changes.add(new GroupChange(groupDiff, originalDatabase, databaseChangeResolverFactory))
+                );
         });
         differences.getPreambleDifferences().ifPresent(diff -> changes.add(new PreambleChange(diff, originalDatabase, databaseChangeResolverFactory)));
         differences.getBibStringDifferences().forEach(diff -> changes.add(createBibStringDiff(originalDatabase, databaseChangeResolverFactory, diff)));
